@@ -1,5 +1,5 @@
 import Rx = require('rxjs/Rx');
-import {PortOptions} from './PortOptions';
+import {ModemOptions} from './ModemOptions';
 
 /**
  * Defined the operations to communicate with a serial port
@@ -31,5 +31,5 @@ export interface ISerialPort{
      * 
      * @return {Rx.Observable} An Observable
      */
-    setPortOptions(options:PortOptions): Rx.Observable<void>;
+    setPortOptions(options:ModemOptions): Rx.Observable<void>;
 }

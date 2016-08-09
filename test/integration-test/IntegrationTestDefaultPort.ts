@@ -1,5 +1,5 @@
 import {DefaultSerialPort} from '../../lib/DefaultSerialPort';
-import {PortOptions} from '../../lib/PortOptions';
+import {ModemOptions} from '../../lib/ModemOptions';
 
 import Rx = require('rxjs/Rx');
 
@@ -10,7 +10,7 @@ describe('DefaultSerialPort', function(){
             
             let port = new DefaultSerialPort();
 
-            let portOptions = new PortOptions();
+            let portOptions = new ModemOptions();
             portOptions.deviceName = '/dev/ttyUSB0';
             portOptions.baudRate = 115200;
 

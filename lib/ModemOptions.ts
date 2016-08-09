@@ -1,8 +1,8 @@
 
 /**
- * Hold information to port opening configuration
+ * Hold information to modem opening configuration
  */
-export class PortOptions{
+export class ModemOptions{
     /**
      * The device name, ex: /dev/ttyUSB0
      */

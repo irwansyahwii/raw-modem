@@ -1,5 +1,6 @@
 import {ISerialPort} from './ISerialPort';
 import Rx = require('rxjs/Rx');
+import {ModemOptions} from './ModemOptions';
 
 
 export class RawModem{
@@ -7,11 +8,13 @@ export class RawModem{
 
     }
 
-    open():Rx.Observable<void>{
+    open(options:ModemOptions):Rx.Observable<void>{
         return Rx.Observable.create(s =>{
-            this.serialPort.open()
+            this.serialPort.setPortOptions(options)
+                .flatMap(() => this.serialPort.open())
+                .flatMap(() => this.serialPort.write('AT\r'))
                 .subscribe(r =>{
-                    s.next(r);
+                    s.next();
                 }, err =>{
                     s.error(err);
                 }, ()=>{
@@ -33,9 +36,9 @@ export class RawModem{
         });
     }
 
-    send(command): Rx.Observable<string>{
+    send(command, callback?:(buffer:any, subscriber:Rx.Subscriber<string>)=> void): Rx.Observable<string>{
         return Rx.Observable.create(s =>{
-            this.serialPort.write(command).subscribe(r =>{
+            this.serialPort.write(command, callback).subscribe(r =>{
                 s.next(r);
             }, err =>{
                 s.error(err);

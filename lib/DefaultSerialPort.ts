@@ -1,6 +1,6 @@
 import {ISerialPort} from './ISerialPort';
 let SerialPort = require('serialport');
-import {PortOptions} from './PortOptions';
+import {ModemOptions} from './ModemOptions';
 
 import Rx = require('rxjs/Rx');
 
@@ -146,7 +146,7 @@ export class DefaultSerialPort implements ISerialPort{
         })
     }
 
-    setPortOptions(options:PortOptions): Rx.Observable<void>{
+    setPortOptions(options:ModemOptions): Rx.Observable<void>{
         return Rx.Observable.create(s =>{
             if(this.devicePort != null){
                 this.devicePort.close();

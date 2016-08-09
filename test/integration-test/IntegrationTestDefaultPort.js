@@ -1,12 +1,12 @@
 "use strict";
 const DefaultSerialPort_1 = require('../../lib/DefaultSerialPort');
-const PortOptions_1 = require('../../lib/PortOptions');
+const ModemOptions_1 = require('../../lib/ModemOptions');
 describe('DefaultSerialPort', function () {
     describe('open()', function () {
         it('open the port', function (done) {
             this.timeout(9000);
             let port = new DefaultSerialPort_1.DefaultSerialPort();
-            let portOptions = new PortOptions_1.PortOptions();
+            let portOptions = new ModemOptions_1.ModemOptions();
             portOptions.deviceName = '/dev/ttyUSB0';
             portOptions.baudRate = 115200;
             let allData = '';

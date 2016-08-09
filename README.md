@@ -13,7 +13,7 @@ This library was created because `sms-device` module needs another driver beside
 
 ### Using in code
 
-```javascript
+```javascript.es6
 import {RawModem} from 'raw-modem';
 
 let modem = new RawModem();

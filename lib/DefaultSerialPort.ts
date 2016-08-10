@@ -25,6 +25,15 @@ export class DefaultSerialPort implements ISerialPort{
         }
     }
 
+    isOpen() : boolean{
+        if(this.devicePort == null){
+            return false;
+        }
+        else{
+            return this.devicePort.isOpen;
+        }
+    }
+
     open(): Rx.Observable<void>{
         return Rx.Observable.create(s =>{
             this._checkDevicePort();
@@ -104,8 +113,7 @@ export class DefaultSerialPort implements ISerialPort{
                 }                
             }
 
-            let onDataCallback = data =>{
-                
+            let onDataCallback = data =>{                
                 if(callback != null){
                     callback(data, s);
                 }
@@ -117,6 +125,7 @@ export class DefaultSerialPort implements ISerialPort{
             let onErrorCallback = err =>{
                 if(state !== 'terminated'){
                     clearTimeout(timeoutId);
+                    clearAllListeners();
                     s.error(err);
                 }
             }
@@ -133,8 +142,7 @@ export class DefaultSerialPort implements ISerialPort{
             let completeCommand = command;
 
             this.devicePort.write(completeCommand, err =>{
-                console.log('command written: ', completeCommand);
-                
+                console.log('command written: ', completeCommand);                
 
                 if(err){
                     clearTimeout(timeoutId);

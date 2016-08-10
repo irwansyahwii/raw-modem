@@ -5,6 +5,25 @@ import {ModemOptions} from './ModemOptions';
  * Defined the operations to communicate with a serial port
  */
 export interface ISerialPort{
+
+    /**
+     * Subscribe to a port event
+     */
+    on(eventName:string, eventHandler:any):void;
+
+
+    /**
+     * Clear all subscribed events
+     */
+    clearSubcribedEvents():void;
+
+    /**
+     * Check if the port has opened
+     * 
+     * @return {boolean} - The port status
+     */
+    isOpen():boolean;
+
     /**
      * Open the serial port
      * 

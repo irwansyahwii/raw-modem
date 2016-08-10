@@ -11,6 +11,9 @@ describe('RawModem', function () {
             let isPortOptionsCalled = false;
             let isCommandATWritten = false;
             let modem = new RawModem_1.RawModem({
+                isOpen: function () {
+                    return false;
+                },
                 open: function () {
                     return Rx.Observable.create(s => {
                         isSerialPortOpened = true;
@@ -41,7 +44,7 @@ describe('RawModem', function () {
                         s.complete();
                     });
                 }
-            });
+            }, null);
             let modemOptions = new ModemOptions_1.ModemOptions();
             modemOptions.autoOpen = true;
             modemOptions.baudRate = 9600;
@@ -59,6 +62,9 @@ describe('RawModem', function () {
         it('close the serial port', function (done) {
             let isSerialPortClosed = false;
             let modem = new RawModem_1.RawModem({
+                isOpen: function () {
+                    return false;
+                },
                 open: function () {
                     return null;
                 },
@@ -74,7 +80,7 @@ describe('RawModem', function () {
                 setPortOptions: function (options) {
                     return null;
                 }
-            });
+            }, null);
             modem.close().subscribe(r => {
             }, null, () => {
                 chai_1.assert.isTrue(isSerialPortClosed);
@@ -82,10 +88,12 @@ describe('RawModem', function () {
             });
         });
     });
-    describe('send(command)', function () {
-        it('write to the serial port', function (done) {
-            let isSerialPortWritten = false;
+    describe('send(command,callback?)', function () {
+        it('check the port open status', function (done) {
             let modem = new RawModem_1.RawModem({
+                isOpen: function () {
+                    return false;
+                },
                 open: function () {
                     return null;
                 },
@@ -94,7 +102,6 @@ describe('RawModem', function () {
                 },
                 write: function (command) {
                     return Rx.Observable.create(s => {
-                        isSerialPortWritten = true;
                         chai_1.assert.equal(command, 'AT+CMGF=1');
                         s.complete();
                     });
@@ -102,10 +109,123 @@ describe('RawModem', function () {
                 setPortOptions: function (options) {
                     return null;
                 }
-            });
+            }, null);
             modem.send('AT+CMGF=1').subscribe(r => {
-            }, null, () => {
+                chai_1.assert.fail(null, null, 'Must not reached here');
+            }, err => {
+                chai_1.assert.equal(err.message, "Port is closed");
+                done();
+            }, () => {
+                chai_1.assert.fail(null, null, 'Must not reached here');
+            });
+        });
+        it('write to the serial port', function (done) {
+            let isSerialPortWritten = false;
+            let isPortOpened = false;
+            let modem = new RawModem_1.RawModem({
+                isOpen: function () {
+                    return isPortOpened;
+                },
+                open: function () {
+                    return Rx.Observable.create(s => {
+                        s.next();
+                        s.complete();
+                    });
+                },
+                close: function () {
+                    return null;
+                },
+                write: function (command) {
+                    return Rx.Observable.create(s => {
+                        let commandTrimmed = command.trim();
+                        if (commandTrimmed !== 'AT') {
+                            isSerialPortWritten = true;
+                            chai_1.assert.equal(command, 'AT+CMGF=1');
+                        }
+                        s.next();
+                        s.complete();
+                    });
+                },
+                setPortOptions: function (options) {
+                    return Rx.Observable.create(s => {
+                        isPortOpened = true;
+                        s.next();
+                        s.complete();
+                    });
+                }
+            }, {
+                start: function (timeout, callback) {
+                },
+                reset: function () {
+                }
+            });
+            modem.open({
+                autoOpen: false,
+                baudRate: 9600,
+                commandTimeout: 3000,
+                deviceName: '/dev/ttyUSB0'
+            })
+                .flatMap(() => {
+                return modem.send('AT+CMGF=1');
+            })
+                .subscribe(r => {
+            }, err => {
+                chai_1.assert.fail(null, null, "Must not reached here");
+            }, () => {
                 chai_1.assert.isTrue(isSerialPortWritten);
+                done();
+            });
+        });
+        it('setup a timeout for the command', function (done) {
+            let isTimerStarted = false;
+            let modem = new RawModem_1.RawModem({
+                isOpen: function () {
+                    return true;
+                },
+                open: function () {
+                    return Rx.Observable.create(s => {
+                        s.next();
+                        s.complete();
+                    });
+                },
+                close: function () {
+                    return null;
+                },
+                write: function (command) {
+                    return Rx.Observable.create(s => {
+                        s.next();
+                        s.complete();
+                    });
+                },
+                setPortOptions: function (options) {
+                    return Rx.Observable.create(s => {
+                        s.next();
+                        s.complete();
+                    });
+                }
+            }, {
+                start: function (timeout, callback) {
+                    isTimerStarted = true;
+                    chai_1.assert.equal(timeout, 3000);
+                    chai_1.assert.isNotNull(callback);
+                },
+                reset: function () {
+                }
+            });
+            modem.open({
+                autoOpen: false,
+                baudRate: 9600,
+                commandTimeout: 3000,
+                deviceName: '/dev/ttyUSB0'
+            })
+                .flatMap(() => {
+                return modem.send('AT+CMGF=1');
+            })
+                .subscribe(r => {
+                chai_1.assert.isTrue(isTimerStarted);
+            }, err => {
+                chai_1.assert.fail(null, null, "Must not reached here");
+            }, () => {
                 done();
             });
         });

@@ -15,6 +15,9 @@ describe('RawModem', function(){
             let isCommandATWritten = false;
 
             let modem = new RawModem({
+                isOpen: function():boolean{
+                    return false;
+                },
                 open: function():Rx.Observable<void>{
                     return Rx.Observable.create(s =>{
                         isSerialPortOpened = true;
@@ -46,7 +49,7 @@ describe('RawModem', function(){
                         s.complete();
                     });
                 }                                
-            })
+            }, null);
 
             let modemOptions = new ModemOptions();
             modemOptions.autoOpen = true;
@@ -68,6 +71,9 @@ describe('RawModem', function(){
             let isSerialPortClosed = false;
 
             let modem = new RawModem({
+                isOpen: function():boolean{
+                    return false;
+                },
                 open: function():Rx.Observable<void>{
                     return null;
                 },
@@ -83,7 +89,7 @@ describe('RawModem', function(){
                 setPortOptions: function(options:ModemOptions):Rx.Observable<void>{
                     return null;
                 }                                
-            })
+            }, null);
 
             modem.close().subscribe(r =>{
 
@@ -93,11 +99,12 @@ describe('RawModem', function(){
             })
         })
     })
-    describe('send(command)', function(){
-        it('write to the serial port', function(done){
-            let isSerialPortWritten = false;
-
+    describe('send(command,callback?)', function(){
+        it('check the port open status', function(done){
             let modem = new RawModem({
+                isOpen: function():boolean{
+                    return false;
+                },                
                 open: function():Rx.Observable<void>{
                     return null;
                 },
@@ -106,7 +113,6 @@ describe('RawModem', function(){
                 },
                 write: function(command):Rx.Observable<string>{
                     return Rx.Observable.create(s =>{
-                        isSerialPortWritten = true;
                         assert.equal(command, 'AT+CMGF=1');
                         s.complete();
                     })
@@ -114,14 +120,172 @@ describe('RawModem', function(){
                 setPortOptions: function(options:ModemOptions):Rx.Observable<void>{
                     return null;
                 }
-            })
+            }, null);
 
             modem.send('AT+CMGF=1').subscribe(r =>{
+                assert.fail(null, null, 'Must not reached here');
+            }, err => {
+                assert.equal(err.message, "Port is closed");
+                done();
+            }, ()=>{
+                assert.fail(null, null, 'Must not reached here');
+            })
+        })
+        it('write to the serial port', function(done){
+            let isSerialPortWritten = false;
+            let isPortOpened = false;
 
-            }, null, ()=>{
+            let modem = new RawModem({
+                isOpen: function():boolean{
+                    return isPortOpened;
+                },                
+                open: function():Rx.Observable<void>{
+                    return Rx.Observable.create(s =>{
+                        s.next();
+                        s.complete();
+                    });
+                },
+                close: function():Rx.Observable<void>{
+                    return null;
+                },
+                write: function(command):Rx.Observable<string>{
+                    return Rx.Observable.create(s =>{
+                        let commandTrimmed = command.trim();
+                        
+                        if(commandTrimmed !== 'AT'){
+                            isSerialPortWritten = true;
+                            assert.equal(command, 'AT+CMGF=1');
+                        }
+                        s.next();
+                        s.complete();
+                    })
+                },
+                setPortOptions: function(options:ModemOptions):Rx.Observable<void>{
+                    return Rx.Observable.create(s =>{
+                        isPortOpened = true;
+                        s.next();
+                        s.complete();
+                    });
+                }
+            }, 
+            {
+                start: function(timeout:number, callback:(...args:any[])=> void):void{
+                    
+                },
+                reset:function(){
+
+                }
+            })
+
+            modem.open({
+                autoOpen: false,
+                baudRate: 9600,
+                commandTimeout: 3000,
+                deviceName: '/dev/ttyUSB0'
+            })
+            .flatMap(() => {
+                return modem.send('AT+CMGF=1')
+            })
+            .subscribe(r =>{
+            }, err => {
+                assert.fail(null, null, "Must not reached here");
+            }, ()=>{
                 assert.isTrue(isSerialPortWritten);
                 done();
             })
+        })
+
+        it('setup a timeout for the command', function(done){
+            let isTimerStarted = false;
+            let modem = new RawModem({
+                isOpen: function():boolean{
+                    return true;
+                },                
+                open: function():Rx.Observable<void>{
+                    return Rx.Observable.create(s =>{
+                        s.next();
+                        s.complete();
+                    })
+                },
+                close: function():Rx.Observable<void>{
+                    return null;
+                },
+                write: function(command):Rx.Observable<string>{
+                    return Rx.Observable.create(s =>{
+                        s.next();
+                        s.complete();
+                    })
+                },
+                setPortOptions: function(options:ModemOptions):Rx.Observable<void>{
+                    return Rx.Observable.create(s =>{
+                        s.next();
+                        s.complete();
+                    })
+                }
+            },
+            {
+                start: function(timeout:number, callback:(...args:any[])=> void):void{
+                    isTimerStarted = true;
+                    assert.equal(timeout, 3000);
+                    assert.isNotNull(callback);
+                },
+                reset:function(){
+
+                }
+            })            
+
+            modem.open({
+                autoOpen: false,
+                baudRate: 9600,
+                commandTimeout: 3000,
+                deviceName: '/dev/ttyUSB0'
+            })
+            .flatMap(() => {
+                return modem.send('AT+CMGF=1')
+            })
+            .subscribe(r =>{
+                assert.isTrue(isTimerStarted);
+            }, err => {
+                assert.fail(null, null, "Must not reached here");
+            }, ()=>{
+                done();
+            })
+        })
+
+        it('subscribes to port events', function(done){
+        })
+
+        it('clean up all port event listeners when the command timedout', function(done){
+        })
+
+        it('clean up all port event listeners when the port error', function(done){
+        })
+
+        it('stop the command timer and clean up all port event listeners when the writing failed', function(done){
+        })
+
+        it('calls the command callback when specified', function(done){
+
+        })
+
+        it('parse the AT command response correctly', function(){
+
+        })
+
+        it('parse the AT+CGMI command response correctly', function(){
+            
+        })
+
+        it('parse the AT+CGSN command response correctly', function(){
+            
+        })
+
+        it('parse the AT+CSCS="GSM" command response correctly', function(){
+            
+        })
+
+        it('parse the AT+CMGS="08898892382" command response correctly', function(){
+            
         })
     })
 })

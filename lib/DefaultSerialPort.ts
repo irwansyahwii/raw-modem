@@ -72,40 +72,27 @@ export class DefaultSerialPort implements ISerialPort{
             
 
             let completeResponse = '';
-            let dataState = 'waiting-echo';
-
-            let defaultDataParser = data =>{
-                let responseString = data.toString().trim(); 
-
-                completeResponse += responseString;
-
-                let commandTrimmed = command.trim();
-
-                console.log('completeResponse: ', completeResponse);
-
-                if(dataState === 'waiting-echo'){
-                    if(completeResponse.startsWith(commandTrimmed)){
-                        dataState = 'waiting-OK';
-                                            
-                        responseString = completeResponse.slice(commandTrimmed.length);
-                        completeResponse = '';
-                    }
-                    else if(completeResponse.startsWith('+')){
-                        dataState = 'waiting-OK';
-                    }                    
-                }
+            let dataState = 'waiting-OK';
+            let defaultDataParser = data => {
+                // console.log('buffer:', data);
+                let responseString = data.toString();
                 
-                if(dataState === 'waiting-OK'){
-                    if(completeResponse.endsWith("OK")){
-                        let dataWithoutOK = completeResponse.slice(0, completeResponse.length - 2);
-                        s.next(dataWithoutOK);
+                completeResponse += responseString;
+                let commandTrimmed = command.trim();
+                if (dataState === 'waiting-OK') {
+                    let rightTrimmed = completeResponse.trim();
+                    if (rightTrimmed.endsWith("OK")) {
+                        let dataWithoutOK = rightTrimmed.slice(0, rightTrimmed.length - 2);
+                        console.log(dataWithoutOK);
 
+                        s.next(dataWithoutOK);
                         clearTimeout(timeoutId);
                         clearAllListeners();
                         s.complete();
                     }
-                }                
-            }
+                }
+            };
+
 
             let onDataCallback = data =>{
                 

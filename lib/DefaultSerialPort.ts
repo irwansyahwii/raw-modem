@@ -117,6 +117,7 @@ export class DefaultSerialPort implements ISerialPort{
             let onErrorCallback = err =>{
                 if(state !== 'terminated'){
                     clearTimeout(timeoutId);
+                    clearAllListeners();
                     s.error(err);
                 }
             }

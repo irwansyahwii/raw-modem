@@ -90,6 +90,9 @@ export class DefaultSerialPort implements ISerialPort{
                         responseString = completeResponse.slice(commandTrimmed.length);
                         completeResponse = '';
                     }
+                    else if(completeResponse.startsWith('+')){
+                        dataState = 'waiting-OK';
+                    }                    
                 }
                 
                 if(dataState === 'waiting-OK'){

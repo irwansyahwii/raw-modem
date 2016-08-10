@@ -74,16 +74,14 @@ export class DefaultSerialPort implements ISerialPort{
             let completeResponse = '';
             let dataState = 'waiting-OK';
             let defaultDataParser = data => {
-                // console.log('buffer:', data);
                 let responseString = data.toString();
                 
                 completeResponse += responseString;
                 let commandTrimmed = command.trim();
                 if (dataState === 'waiting-OK') {
-                    let rightTrimmed = completeResponse.trim();
-                    if (rightTrimmed.endsWith("OK")) {
-                        let dataWithoutOK = rightTrimmed.slice(0, rightTrimmed.length - 2);
-                        console.log(dataWithoutOK);
+                    let completeResponseTrimmed = completeResponse.trim();
+                    if (completeResponseTrimmed.endsWith("OK")) {
+                        let dataWithoutOK = completeResponseTrimmed.slice(0, completeResponseTrimmed.length - 2);
 
                         s.next(dataWithoutOK);
                         clearTimeout(timeoutId);
@@ -124,9 +122,7 @@ export class DefaultSerialPort implements ISerialPort{
             let completeCommand = command;
 
             this.devicePort.write(completeCommand, err =>{
-                console.log('command written: ', completeCommand);
                 
-
                 if(err){
                     clearTimeout(timeoutId);
                     clearAllListeners();

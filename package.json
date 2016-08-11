@@ -1,6 +1,6 @@
 {
   "name": "raw-modem",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "A library to send raw command to a modem and received the response",
   "main": "index.js",
   "scripts": {

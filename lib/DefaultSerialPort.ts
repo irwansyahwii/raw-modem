@@ -6,7 +6,7 @@ import Rx = require('rxjs/Rx');
 
 export class DefaultSerialPort implements ISerialPort{
 
-    private _portOptions:Object = {};
+    private _portOptions:ModemOptions = null;
     private _devicePort: any = null;
 
     
@@ -66,7 +66,7 @@ export class DefaultSerialPort implements ISerialPort{
                 clearAllListeners();
 
                 s.error(new Error('Command timedout'));
-            }, 3000);
+            }, this._portOptions.commandTimeout);
 
             let state:string = 'waiting-response';
             

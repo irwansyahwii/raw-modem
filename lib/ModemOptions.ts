@@ -17,4 +17,9 @@ export class ModemOptions{
      * Automically opened flag
      */
     public autoOpen: boolean = false;
+
+    /**
+     * Command timeout
+     */
+    public commandTimeout:number = 5000;
 }

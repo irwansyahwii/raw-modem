@@ -1,4 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
 import {RawModem} from '../lib/RawModem';
 import {ISerialPort} from '../lib/ISerialPort';
 import {ModemOptions} from '../lib/ModemOptions';

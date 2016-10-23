@@ -45,16 +45,21 @@ export class DefaultSerialPort implements ISerialPort{
     close(): Rx.Observable<void>{
         return Rx.Observable.create(s =>{
             this._checkDevicePort();
-
-            this.devicePort.close(err =>{
-                if(err){
-                    s.error(err);s
-                }
-                else{
-                    s.next();
-                    s.complete();
-                }
-            })
+            if(this.devicePort.isOpen()){
+                this.devicePort.close(err =>{
+                    if(err){
+                        s.error(err);
+                    }
+                    else{
+                        s.next();
+                        s.complete();
+                    }
+                })
+            }
+            else{
+                s.next();
+                s.complete();
+            }
         })
     }
 
